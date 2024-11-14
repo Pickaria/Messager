@@ -1,0 +1,41 @@
+plugins {
+    id 'java'
+    id 'maven-publish'
+}
+
+group = 'fr.pickaria'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compileOnly "net.kyori:adventure-api:4.17.0"
+    compileOnly "net.kyori:adventure-text-minimessage:4.17.0"
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+publishing {
+    repositories {
+        maven {
+            name = 'pickariaRepository'
+            url = uri(version.toString().endsWith('-SNAPSHOT') ? 'https://maven.pickaria.fr/snapshots' : 'https://maven.pickaria.fr/releases')
+            credentials {
+                username = System.getenv('MAVEN_USERNAME')
+                password = System.getenv('MAVEN_PASSWORD')
+            }
+        }
+    }
+
+    publications {
+        maven(MavenPublication) {
+            artifactId = project.name
+            from components.java
+        }
+    }
+}
