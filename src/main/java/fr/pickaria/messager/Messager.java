@@ -46,6 +46,10 @@ public class Messager {
         audience.sendMessage(formattedMessage);
     }
 
+    public void exception(Audience audience, MessagerException exception) {
+        this.error(audience, exception.getTranslationKey(), exception.getArguments());
+    }
+
     public Component format(MessageType type, String key, MessageComponent... components) {
         return formatTranslatable(getConfiguration(type), key, components);
     }
