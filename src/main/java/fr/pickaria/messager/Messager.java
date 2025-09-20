@@ -3,47 +3,36 @@ package fr.pickaria.messager;
 import fr.pickaria.messager.configuration.MessageConfiguration;
 import fr.pickaria.messager.configuration.MessagerConfiguration;
 import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.renderer.TranslatableComponentRenderer;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class Messager {
-    private final static MiniMessage miniMessage = MiniMessage.miniMessage();
-
-    private final static MessagerConfiguration defaultConfiguration = new MessagerConfiguration(
-            new MessageConfiguration(
-                    miniMessage.deserialize("<dark_gray>[<bold><gold>!</bold><dark_gray>]"),
-                    NamedTextColor.GRAY,
-                    NamedTextColor.GOLD
-            ),
-            new MessageConfiguration(
-                    miniMessage.deserialize("<dark_red>[<bold><red>!</bold><dark_red>]"),
-                    NamedTextColor.RED,
-                    NamedTextColor.GRAY
-            )
-    );
 
     private final MessagerConfiguration configuration;
+    private final TranslatableComponentRenderer<Locale> renderer;
 
-    public Messager(MessagerConfiguration configuration) {
+    protected Messager(MessagerConfiguration configuration, TranslatableComponentRenderer<Locale> renderer) {
         this.configuration = configuration;
+        this.renderer = renderer;
     }
 
-    public Messager() {
-        this.configuration = defaultConfiguration;
+    public static MessagerBuilder builder() {
+        return new MessagerBuilder();
     }
 
     public void info(Audience audience, String key, MessageComponent... components) {
         Component formattedMessage = formatTranslatable(getConfiguration(MessageType.INFO), key, components);
-        audience.sendMessage(formattedMessage);
+        sendMessage(audience, formattedMessage);
     }
 
     public void error(Audience audience, String key, MessageComponent... components) {
         Component formattedMessage = formatTranslatable(getConfiguration(MessageType.ERROR), key, components);
-        audience.sendMessage(formattedMessage);
+        sendMessage(audience, formattedMessage);
     }
 
     public void exception(Audience audience, MessagerException exception) {
@@ -79,5 +68,10 @@ public class Messager {
         } else {
             return Component.translatable(translationKey, translationKey);
         }
+    }
+
+    private void sendMessage(Audience audience, Component message) {
+        Locale locale = audience.get(Identity.LOCALE).orElse(Locale.ROOT);
+        audience.sendMessage(this.renderer.render(message, locale));
     }
 }
